@@ -1,6 +1,7 @@
 from bpy.types import NodeTree
 from .registration import register_class
 
+
 @register_class
 class ProceduralTextureNodeTree(NodeTree):
     '''Description'''

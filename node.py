@@ -1,6 +1,7 @@
 from bpy.types import Node
 from .node_tree import ProceduralTextureNodeTree
 
+
 class ProceduralTextureNode(Node):
     @classmethod
     def poll(cls, tree):
