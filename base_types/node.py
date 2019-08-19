@@ -1,5 +1,5 @@
 from bpy.types import Node
-from .node_tree import ProceduralTextureNodeTree
+from ..node_tree import ProceduralTextureNodeTree
 
 
 class ProceduralTextureNode(Node):

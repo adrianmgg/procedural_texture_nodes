@@ -1,7 +1,7 @@
 import bpy
 import gpu
 import gpu_extras
-from ..node import ProceduralTextureNode
+from ..base_types.node import ProceduralTextureNode
 from ..registration import register_node
 from .. import categories
 from ..sockets.image_socket import ImageSocket
