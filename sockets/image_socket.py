@@ -6,9 +6,8 @@ from ..registration import register_class
 
 
 @register_class
-class ImageSocket(NodeSocket):
-    """description"""  # TODO
-    bl_idname = 'ProceduralTexture_Socket_Image'
+class BufferSocket(NodeSocket):
+    bl_idname = 'ProceduralTexture_Socket_Buffer'
     bl_label = 'Image'
 
     buffer_id: bpy.props.IntProperty(default=-1)

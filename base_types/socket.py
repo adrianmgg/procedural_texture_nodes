@@ -1,16 +1,17 @@
+from typing import TYPE_CHECKING
+
 from bpy.types import NodeSocket
+
+if TYPE_CHECKING:
+    from ..base_types.node import ProceduralTextureNode
 
 
 class ProceduralTextureNodeSocket(NodeSocket):
-    def setValue(self, data):
-        pass
+    node: 'ProceduralTextureNode'
 
-    def getValue(self):
-        pass
-
-    # TODO give this better name
-    def getInputValue(self):
-        if not self.is_output and self.is_linked:
+    def update(self):
+        if self.is_output:
             for link in self.links:
-                print(link)
-        return self.getValue()
+                link.to_socket.update()
+        else:  # self is input socket
+            self.node.updateNode()

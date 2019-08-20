@@ -1,14 +1,14 @@
 import bgl
 import bpy
 import gpu
-import gpu_extras
 from gpu_extras.presets import draw_circle_2d
-from ..base_types.node import ProceduralTextureNode
-from ..registration import register_node
-from .. import categories
-from ..sockets.image_socket import ImageSocket
-from ..data import buffer as buffer_manager
 from mathutils import Matrix
+
+from .. import categories
+from ..base_types.node import ProceduralTextureNode
+from ..data import buffer as buffer_manager
+from ..registration import register_node
+from ..sockets.image_socket import BufferSocket
 
 
 def dimensions_changed(node: 'TestNode', context: bpy.types.Context):
@@ -23,7 +23,6 @@ def dimensions_changed(node: 'TestNode', context: bpy.types.Context):
 
 @register_node(category=categories.test_nodes)
 class TestNode(ProceduralTextureNode):
-    '''description'''
     bl_idname = 'ProceduralTexture_Test'
     bl_label = 'Test Node'
 
@@ -33,19 +32,19 @@ class TestNode(ProceduralTextureNode):
     buffer_id: bpy.props.IntProperty(default=-1)
     buffer_needs_update: bpy.props.BoolProperty(default=True)
 
-    def init(self, context):
+    def init(self, context: bpy.types.Context):
         self.buffer_id = buffer_manager.new_instance(
             buffer_type=bgl.GL_BYTE,
             dimensions=4 * self.image_width * self.image_height
         )
-        self.outputs.new(ImageSocket.bl_idname, name='Output')
+        self.outputs.new(BufferSocket.bl_idname, name='Output')
 
     def draw_buttons(self, context, layout):
         layout.prop(self, 'image_width', text='Width')
         layout.prop(self, 'image_height', text='Height')
 
     def updateNode(self):
-        buffer_output: ImageSocket = self.outputs.get('Output')
+        buffer_output: BufferSocket = self.outputs.get('Output')
         buffer_output.set_buffer_id(self.buffer_id)
         buffer_output.width = self.image_width
         buffer_output.height = self.image_height
