@@ -4,7 +4,7 @@ import gpu
 from .. import categories
 from ..base_types.node import ProceduralTextureNode
 from ..registration import register_node
-from ..sockets.image_socket import BufferSocket
+from ..sockets.buffer_socket import BufferSocket
 
 
 @register_node(category=categories.io_nodes)
@@ -17,11 +17,11 @@ class OutputNode(ProceduralTextureNode):
     def init(self, context):
         self.inputs.new(BufferSocket.bl_idname, name='Output Image')
         # self.show_preview = True TODO figure out how to set preview image
-        self.updateImage()
+        super().init_post()
 
     # TODO make this change with name
     # TODO what event triggers when node name changes?
-    def updateImage(self):
+    def recalculateOutputs(self):
         if self.image is None:
             if self.name not in bpy.data.images:
                 bpy.data.images.new(
@@ -39,9 +39,6 @@ class OutputNode(ProceduralTextureNode):
 
             self.image.pixels = [x / 255 for x in buffer]
             self.image.update()
-
-    def updateNode(self):
-        self.updateImage()
 
     def draw_buttons(self, context: bpy.types.Context, layout: bpy.types.UILayout):
         super().draw_buttons(context, layout)

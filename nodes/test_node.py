@@ -1,14 +1,14 @@
 import bgl
 import bpy
-import gpu
 from gpu_extras.presets import draw_circle_2d
-from mathutils import Matrix
 
 from .. import categories
+from .. import events
 from ..base_types.node import ProceduralTextureNode
 from ..data import buffer as buffer_manager
 from ..registration import register_node
-from ..sockets.image_socket import BufferSocket
+from ..sockets.buffer_socket import BufferSocket
+from ..util.gl_util import OffscreenRender2DShader
 
 
 def dimensions_changed(node: 'TestNode', context: bpy.types.Context):
@@ -17,8 +17,7 @@ def dimensions_changed(node: 'TestNode', context: bpy.types.Context):
         buffer_type=bgl.GL_BYTE,
         dimensions=4 * node.image_width * node.image_height
     )
-    node.buffer_needs_update = True
-    node.updateNode()
+    events.node_property_update(node, context)
 
 
 @register_node(category=categories.test_nodes)
@@ -30,7 +29,6 @@ class TestNode(ProceduralTextureNode):
     image_height: bpy.props.IntProperty(default=1024, min=1, update=dimensions_changed)
 
     buffer_id: bpy.props.IntProperty(default=-1)
-    buffer_needs_update: bpy.props.BoolProperty(default=True)
 
     def init(self, context: bpy.types.Context):
         self.buffer_id = buffer_manager.new_instance(
@@ -38,29 +36,28 @@ class TestNode(ProceduralTextureNode):
             dimensions=4 * self.image_width * self.image_height
         )
         self.outputs.new(BufferSocket.bl_idname, name='Output')
+        super().init_post()
 
     def draw_buttons(self, context, layout):
         layout.prop(self, 'image_width', text='Width')
         layout.prop(self, 'image_height', text='Height')
 
-    def updateNode(self):
+    def recalculateOutputs(self):
         buffer_output: BufferSocket = self.outputs.get('Output')
         buffer_output.set_buffer_id(self.buffer_id)
         buffer_output.width = self.image_width
         buffer_output.height = self.image_height
-        if self.buffer_needs_update and self.buffer_id is not -1:
-            offscreen = gpu.types.GPUOffScreen(self.image_width, self.image_height)
-            with offscreen.bind():
-                gpu.matrix.load_matrix(Matrix.Identity(4))
-                gpu.matrix.load_projection_matrix(Matrix.Identity(4))
-                for x in range(-8, 8 + 1):
-                    draw_circle_2d(
-                        (x / 8, 0),  # position
-                        (1, 1, 1, 1),  # color
-                        .25,  # radius
-                        32  # segments
-                    )
-                self.buffer_needs_update = False
+        if self.buffer_id is not -1:
+            fragment_shader = '''
+in vec2 uvInterp;
+
+void main()
+{
+    gl_FragColor = vec4(uvInterp, 1.0, 1.0);
+}
+'''
+            with OffscreenRender2DShader(self.image_width, self.image_height, fragment_shader=fragment_shader) as offscreen:
+                offscreen.draw_shader()
 
                 buffer = buffer_manager.get_instance(self.buffer_id)
                 bgl.glReadBuffer(bgl.GL_BACK)

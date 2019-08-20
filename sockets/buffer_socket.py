@@ -1,12 +1,13 @@
 import bpy
-from bpy.types import NodeSocket
 
 from ..data import buffer
 from ..registration import register_class
+from ..base_types.socket import ProceduralTextureNodeSocket
+from ..util.decorators import get_from_linked
 
 
 @register_class
-class BufferSocket(NodeSocket):
+class BufferSocket(ProceduralTextureNodeSocket):
     bl_idname = 'ProceduralTexture_Socket_Buffer'
     bl_label = 'Image'
 

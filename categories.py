@@ -22,6 +22,11 @@ test_nodes = ProceduralTextureNodeCategory(
     name='Test Category'
 )
 
+noise_nodes = ProceduralTextureNodeCategory(
+    identifier='NOISE',
+    name='Noise'
+)
+
 io_nodes = ProceduralTextureNodeCategory(
     identifier='IO',
     name='Input/Output'
