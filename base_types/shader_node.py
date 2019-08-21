@@ -1,17 +1,15 @@
 import bgl
 import bpy
-from gpu_extras.presets import draw_circle_2d
+import gpu
 
-from .. import categories
-from .. import events
 from ..base_types.node import ProceduralTextureNode
-from ..data import buffer_manager as buffer_manager
-from ..registration import register_node
+from ..data import buffer_manager
 from ..sockets.buffer_socket import BufferSocket
 from ..util.gl_util import OffscreenRender2DShader
+from .. import events
 
 
-def dimensions_changed(node: 'TestNode', context: bpy.types.Context):
+def dimensions_changed(node: 'ShaderNode', context: bpy.types.Context):
     buffer_manager.replace_instance(
         key=node.buffer_id,
         buffer_type=bgl.GL_BYTE,
@@ -20,11 +18,7 @@ def dimensions_changed(node: 'TestNode', context: bpy.types.Context):
     events.node_property_update(node, context)
 
 
-@register_node(category=categories.test_nodes)
-class TestNode(ProceduralTextureNode):
-    bl_idname = 'ProceduralTexture_Test'
-    bl_label = 'Test Node'
-
+class ShaderNode(ProceduralTextureNode):
     image_width: bpy.props.IntProperty(default=1024, min=1, update=dimensions_changed)
     image_height: bpy.props.IntProperty(default=1024, min=1, update=dimensions_changed)
 
@@ -48,15 +42,10 @@ class TestNode(ProceduralTextureNode):
         buffer_output.width = self.image_width
         buffer_output.height = self.image_height
         if self.buffer_id is not -1:
-            fragment_shader = '''
-in vec2 uvInterp;
-
-void main()
-{
-    gl_FragColor = vec4(uvInterp, 1.0, 1.0);
-}
-'''
-            with OffscreenRender2DShader(self.image_width, self.image_height, fragment_shader=fragment_shader) as offscreen:
+            with OffscreenRender2DShader(self.image_width, self.image_height, fragment_shader=type(self).fragment_shader) \
+                    as offscreen:
+                offscreen.shader.bind()
+                self.add_shader_inputs(offscreen.shader)
                 offscreen.draw_shader()
 
                 buffer = buffer_manager.get_instance(self.buffer_id)
@@ -65,3 +54,6 @@ void main()
 
     def free(self):
         buffer_manager.free_instance(self.buffer_id)
+
+    def add_shader_inputs(self, shader: gpu.types.GPUShader):
+        pass

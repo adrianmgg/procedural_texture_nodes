@@ -1,6 +1,6 @@
 import bpy
 
-from ..data import buffer
+from ..data import buffer_manager
 from ..registration import register_class
 from ..base_types.socket import ProceduralTextureNodeSocket
 from ..util.decorators import get_from_linked
@@ -21,20 +21,21 @@ class BufferSocket(ProceduralTextureNodeSocket):
     def get_buffer_id(self) -> int:
         return self.buffer_id
 
+    @get_from_linked
     def get_buffer(self):
-        if not self.is_output and self.is_linked:
-            return self.links[0].from_socket.get_buffer()
-        return buffer.get_instance(self.buffer_id)
+        return buffer_manager.get_instance(self.buffer_id)
 
+    @get_from_linked
     def get_width(self):
-        if not self.is_output and self.is_linked:
-            return self.links[0].from_socket.width
         return self.width
 
+    @get_from_linked
     def get_height(self):
-        if not self.is_output and self.is_linked:
-            return self.links[0].from_socket.height
         return self.height
+
+    @get_from_linked
+    def get_buffer_type(self):
+        return buffer_manager.get_buffer_type(self.buffer_id)
 
     def draw(self, context, layout, node, text):
         layout.label(text=text)

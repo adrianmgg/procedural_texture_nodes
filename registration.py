@@ -1,5 +1,5 @@
 import nodeitems_utils
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Type
 
 if TYPE_CHECKING:
     from .categories import ProceduralTextureNodeCategory
@@ -15,8 +15,15 @@ def register_class(cls):
 
 
 def register_node(category: 'ProceduralTextureNodeCategory'):
-    def decorator(cls: 'ProceduralTextureNode'):
+    def decorator(cls: 'Type[ProceduralTextureNode]'):
         category.append(nodeitems_utils.NodeItem(cls.bl_idname))
         classes_to_register.add(cls)
+
+        # give props of superclasses to node
+        annotations = {}
+        for a in cls.mro():
+            if '__annotations__' in dir(a):
+                annotations.update(a.__annotations__)
+        cls.__annotations__ = annotations
         return cls
     return decorator

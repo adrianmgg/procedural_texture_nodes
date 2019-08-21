@@ -1,3 +1,6 @@
+import timeit
+
+import bgl
 import bpy
 import gpu
 
@@ -5,6 +8,7 @@ from .. import categories
 from ..base_types.node import ProceduralTextureNode
 from ..registration import register_node
 from ..sockets.buffer_socket import BufferSocket
+from ..data import buffer_manager
 
 
 @register_node(category=categories.io_nodes)
@@ -31,13 +35,13 @@ class OutputNode(ProceduralTextureNode):
             self.image = bpy.data.images.get(self.name)
         if self.image.name != self.name:
             self.image.name = self.name
-        image_input: BufferSocket = self.inputs.get('Output Image')
-        buffer: gpu.types.GPUOffScreen = image_input.get_buffer()
+        buffer_input_socket: BufferSocket = self.inputs.get('Output Image')
+        buffer = buffer_input_socket.get_buffer()
         if buffer is not None:
-            if self.image.size != [image_input.get_width(), image_input.get_height()]:  # TODO does this comparison work properly
-                self.image.scale(image_input.get_width(), image_input.get_height())
+            if self.image.size[0] != buffer_input_socket.get_width() or self.image.size[1] == buffer_input_socket.get_height():
+                self.image.scale(buffer_input_socket.get_width(), buffer_input_socket.get_height())
 
-            self.image.pixels = [x / 255 for x in buffer]
+            self.image.pixels = [x / 255 for x in buffer]  # TODO speed this up
             self.image.update()
 
     def draw_buttons(self, context: bpy.types.Context, layout: bpy.types.UILayout):
