@@ -3,16 +3,8 @@ from bpy.types import Node
 
 from ..node_tree import ProceduralTextureNodeTree
 
-from typing import TYPE_CHECKING, List
-
-if TYPE_CHECKING:
-    from ..base_types.socket import ProceduralTextureNodeSocket
-
 
 class ProceduralTextureNode(Node):
-    outputs: List['ProceduralTextureNodeSocket']
-    inputs: List['ProceduralTextureNodeSocket']
-
     def init_post(self):
         self.updateNode()
 
@@ -21,7 +13,7 @@ class ProceduralTextureNode(Node):
         return tree.bl_idname == ProceduralTextureNodeTree.bl_idname
 
     def update(self):
-        pass
+        self.recalculateOutputs()
 
     def socket_value_update(self, context: 'bpy.types.Context'):  # does this do anything
         pass
