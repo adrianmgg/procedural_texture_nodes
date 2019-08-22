@@ -23,8 +23,6 @@ class OutputNode(ProceduralTextureNode):
         # self.show_preview = True TODO figure out how to set preview image
         super().init_post()
 
-    # TODO make this change with name
-    # TODO what event triggers when node name changes?
     def recalculateOutputs(self):
         if self.image is None:
             if self.name not in bpy.data.images:
@@ -53,3 +51,9 @@ class OutputNode(ProceduralTextureNode):
     def free(self):
         # should the image be removed on free()?
         pass
+
+    def draw_label(self) -> str:
+        if self.image.name != self.name:
+            self.recalculateOutputs()
+        return self.name
+
