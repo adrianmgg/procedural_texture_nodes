@@ -1,14 +1,9 @@
-import timeit
-
-import bgl
 import bpy
-import gpu
 
 from .. import categories
 from ..base_types.node import ProceduralTextureNode
 from ..registration import register_node
 from ..sockets.buffer_socket import BufferSocket
-from ..data import buffer_manager
 
 
 @register_node(category=categories.io_nodes)

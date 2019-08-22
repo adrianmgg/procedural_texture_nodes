@@ -6,8 +6,6 @@ from .. import events
 from ..base_types.shader_node import ShaderNode
 from ..registration import register_node
 
-# TODO gl_FragColor is deprecated
-
 
 @register_node(category=categories.noise_nodes)
 class PerlinNoiseNode(ShaderNode):
@@ -57,9 +55,11 @@ float pNoise(vec2 p, int res){
     return nf*nf*nf*nf;
 }
 
+layout(location = 0) out vec4 frag_color;
+
 void main(){
     float value = pNoise(uvInterp, 2);
-    gl_FragColor = vec4(value, value, value, 1.0);
+    frag_color = vec4(value, value, value, 1.0);
 }
 '''
 
@@ -111,9 +111,11 @@ float fbm(vec2 x) {
     return v;
 }
 
+layout(location = 0) out vec4 frag_color;
+
 void main(){
     float value = fbm(uvInterp);
-    gl_FragColor = vec4(value, value, value, 1.0);
+    frag_color = vec4(value, value, value, 1.0);
 }
 '''
 

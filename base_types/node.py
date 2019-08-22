@@ -13,7 +13,8 @@ class ProceduralTextureNode(Node):
         return tree.bl_idname == ProceduralTextureNodeTree.bl_idname
 
     def update(self):
-        self.recalculateOutputs()
+        print(f'{self.name}.update()')
+        self.updateNode()
 
     def socket_value_update(self, context: 'bpy.types.Context'):  # does this do anything
         pass
@@ -22,7 +23,6 @@ class ProceduralTextureNode(Node):
         pass
 
     def updateNode(self):
-        print(f'updating node {self.name}')
         self.recalculateOutputs()
         for output in self.outputs:
             output.update()
