@@ -1,6 +1,9 @@
 from functools import wraps
 import typing
 from typing import TYPE_CHECKING
+
+import bpy
+
 if TYPE_CHECKING:
     from ..base_types.socket import ProceduralTextureNodeSocket
 
@@ -15,3 +18,10 @@ def get_from_linked(function):
                 return getattr(link.from_socket, function.__name__)(*args, **kwargs)
         return function(self, *args, **kwargs)
     return wrapper
+
+
+def add_handler(handler):
+    def decorator(function):
+        handler.append(function)
+        return function
+    return decorator

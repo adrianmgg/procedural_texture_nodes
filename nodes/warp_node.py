@@ -1,12 +1,10 @@
 import bpy
-import gpu
 
 from .. import categories
-from .. import events
 from ..base_types.shader_node import ShaderNode
-from ..sockets.basic_sockets import FloatSocket, IntSocket
-from ..sockets.buffer_socket import BufferSocket
 from ..registration import register_node
+from ..sockets.basic_sockets import FloatSocket
+from ..sockets.buffer_socket import BufferSocket
 
 
 @register_node(category=categories.effects)
@@ -35,4 +33,6 @@ void main(){
         super().init_node(context)
         self.inputs.new(BufferSocket.bl_idname, 'Input Image', identifier='input_image')
         self.inputs.new(BufferSocket.bl_idname, 'Warp Map', identifier='warp')
-        self.inputs.new(FloatSocket.bl_idname, 'Strength', identifier='strength')
+        # noinspection PyTypeChecker
+        strength: FloatSocket = self.inputs.new(FloatSocket.bl_idname, 'Strength', identifier='strength')
+        strength.set_default_value(1)

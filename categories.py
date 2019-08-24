@@ -16,6 +16,7 @@ class ProceduralTextureNodeCategory(NodeCategory):
     def append(self, node):
         self._items.append(node)
 
+
 # use an enum for these?
 test_nodes = ProceduralTextureNodeCategory(
     identifier='TEST',
@@ -27,12 +28,12 @@ noise_nodes = ProceduralTextureNodeCategory(
     name='Noise'
 )
 
-io_nodes = ProceduralTextureNodeCategory(
-    identifier='IO',
-    name='Input/Output'
-)
-
 effects = ProceduralTextureNodeCategory(
     identifier='EFFECTS',
     name='Effects'
+)
+
+io_nodes = ProceduralTextureNodeCategory(
+    identifier='IO',
+    name='Input/Output'
 )

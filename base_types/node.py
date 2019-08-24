@@ -44,3 +44,7 @@ class ProceduralTextureNode(Node):
                     if link.from_node.is_dirty:
                         link.from_node.backUpdate()
         self.recalculateOutputs()
+
+    def load(self):
+        """ called when nodes are loaded from blend file """
+        pass

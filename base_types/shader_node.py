@@ -12,11 +12,7 @@ from .. import events
 
 
 def dimensions_changed(node: 'ShaderNode', context: bpy.types.Context):
-    buffer_manager.replace_instance(
-        key=node.buffer_id,
-        buffer_type=bgl.GL_BYTE,
-        dimensions=4 * node.image_width * node.image_height
-    )
+    node.setup_buffer()
     events.node_property_update(node, context)
 
 
@@ -28,11 +24,21 @@ class ShaderNode(ProceduralTextureNode):
 
     def init_node(self, context: bpy.types.Context):
         super().init_node(context)
-        self.buffer_id = buffer_manager.new_instance(
-            buffer_type=bgl.GL_BYTE,
-            dimensions=4 * self.image_width * self.image_height
-        )
+
         self.outputs.new(BufferSocket.bl_idname, name='Output')
+
+    def setup_buffer(self, reset=False):
+        if self.buffer_id == -1 or reset:
+            self.buffer_id = buffer_manager.new_instance(
+                buffer_type=bgl.GL_BYTE,
+                dimensions=4 * self.image_width * self.image_height
+            )
+        else:
+            buffer_manager.replace_instance(
+                key=self.buffer_id,
+                buffer_type=bgl.GL_BYTE,
+                dimensions=4 * self.image_width * self.image_height
+            )
 
     def draw_buttons(self, context, layout):
         super().draw_buttons(context, layout)
@@ -117,3 +123,7 @@ void main()
 
     def free(self):
         buffer_manager.delete_instance(self.buffer_id)
+
+    def load(self):
+        self.is_dirty = True
+        self.setup_buffer(reset=True)
