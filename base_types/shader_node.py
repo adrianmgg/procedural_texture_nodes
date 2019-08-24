@@ -20,8 +20,6 @@ def dimensions_changed(node: 'ShaderNode', context: bpy.types.Context):
     events.node_property_update(node, context)
 
 
-# FIXME nodes with multiple buffer inputs don't work
-#  the final input seems to override the other inputs
 class ShaderNode(ProceduralTextureNode):
     image_width: bpy.props.IntProperty(default=1024, min=1, update=dimensions_changed)
     image_height: bpy.props.IntProperty(default=1024, min=1, update=dimensions_changed)
@@ -86,7 +84,7 @@ void main()
                             continue
                         tex_id_buff = bgl.Buffer(bgl.GL_INT, 1)
                         bgl.glGenTextures(1, tex_id_buff)
-                        textures_to_delete.append(tex_id_buff)
+                        bgl.glActiveTexture(bgl.GL_TEXTURE0 + texture_count)
                         bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_id_buff[0])
                         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_NEAREST)
                         bgl.glTexImage2D(
@@ -100,10 +98,9 @@ void main()
                             bgl.GL_UNSIGNED_BYTE,  # data type
                             ipt.get_buffer()  # buffer
                         )
-                        bgl.glActiveTexture(bgl.GL_TEXTURE0 + texture_count)
-                        bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_id_buff[0])
                         shader.uniform_int(ipt.identifier, texture_count)
-                        texture_count += 4
+                        texture_count += 1
+                        textures_to_delete.append(tex_id_buff)
                     elif isinstance(ipt, FloatSocket):
                         shader.uniform_float(ipt.identifier, ipt.get_value())
                     elif isinstance(ipt, IntSocket):
