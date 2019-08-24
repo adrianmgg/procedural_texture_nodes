@@ -29,14 +29,14 @@ def get_instance(key: int) -> Optional[bgl.Buffer]:
     return None
 
 
-def free_instance(key: int) -> NoReturn:
+def delete_instance(key: int) -> NoReturn:
     if key in _buffer_instances:
         _buffer_instances.pop(key)
         _buffer_types.pop(key)
 
 
 def replace_instance(key: int, buffer_type: int, dimensions: Union[int, List[int]], template=None) -> NoReturn:
-    free_instance(key)
+    delete_instance(key)
     _create_buffer(key=key, buffer_type=buffer_type, dimensions=dimensions, template=template)
 
 

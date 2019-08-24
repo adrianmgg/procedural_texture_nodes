@@ -20,6 +20,8 @@ def dimensions_changed(node: 'ShaderNode', context: bpy.types.Context):
     events.node_property_update(node, context)
 
 
+# FIXME nodes with multiple buffer inputs don't work
+#  the final input seems to override the other inputs
 class ShaderNode(ProceduralTextureNode):
     image_width: bpy.props.IntProperty(default=1024, min=1, update=dimensions_changed)
     image_height: bpy.props.IntProperty(default=1024, min=1, update=dimensions_changed)
@@ -35,10 +37,12 @@ class ShaderNode(ProceduralTextureNode):
         self.outputs.new(BufferSocket.bl_idname, name='Output')
 
     def draw_buttons(self, context, layout):
+        super().draw_buttons(context, layout)
         layout.prop(self, 'image_width', text='Width')
         layout.prop(self, 'image_height', text='Height')
 
     def recalculateOutputs(self):
+        super().recalculateOutputs()
         buffer_output: BufferSocket = self.outputs.get('Output')
         buffer_output.set_buffer_id(self.buffer_id)
         buffer_output.width = self.image_width
@@ -99,7 +103,7 @@ void main()
                         bgl.glActiveTexture(bgl.GL_TEXTURE0 + texture_count)
                         bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_id_buff[0])
                         shader.uniform_int(ipt.identifier, texture_count)
-                        texture_count += 1
+                        texture_count += 4
                     elif isinstance(ipt, FloatSocket):
                         shader.uniform_float(ipt.identifier, ipt.get_value())
                     elif isinstance(ipt, IntSocket):
@@ -115,4 +119,4 @@ void main()
                 bgl.glReadPixels(0, 0, self.image_width, self.image_height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
 
     def free(self):
-        buffer_manager.free_instance(self.buffer_id)
+        buffer_manager.delete_instance(self.buffer_id)

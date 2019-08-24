@@ -10,9 +10,9 @@ class ProceduralTextureNodeSocket(NodeSocket):
     node: 'ProceduralTextureNode'
 
     def update(self):
-        print(f'updating socket {self.name}')
         if self.is_output:
             for link in self.links:
                 link.to_socket.update()
         else:  # self is input socket
-            self.node.updateNode()
+            if self.node.initialization_completed:
+                self.node.updateNode()

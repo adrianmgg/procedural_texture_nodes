@@ -18,7 +18,11 @@ class OutputNode(ProceduralTextureNode):
         self.inputs.new(BufferSocket.bl_idname, name='Output Image')
         # self.show_preview = True TODO figure out how to set preview image
 
+    def updateNode(self):
+        self.backUpdate()
+
     def recalculateOutputs(self):
+        super().recalculateOutputs()
         if self.image is None:
             if self.name not in bpy.data.images:
                 bpy.data.images.new(
@@ -31,7 +35,7 @@ class OutputNode(ProceduralTextureNode):
         buffer_input_socket: BufferSocket = self.inputs.get('Output Image')
         buffer = buffer_input_socket.get_buffer()
         if buffer is not None:
-            if self.image.size[0] != buffer_input_socket.get_width() or self.image.size[1] == buffer_input_socket.get_height():
+            if self.image.size[0] != buffer_input_socket.get_width() or self.image.size[1] != buffer_input_socket.get_height():
                 self.image.scale(buffer_input_socket.get_width(), buffer_input_socket.get_height())
 
             self.image.pixels = [x / 255 for x in buffer]  # TODO speed this up

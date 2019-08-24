@@ -4,13 +4,15 @@ from .registration import register_class
 
 @register_class
 class ProceduralTextureNodeTree(NodeTree):
-    '''Description'''
     bl_idname = 'ProceduralTextureNodeTree'
     bl_label = 'Procedural Texture Editor'
     bl_icon = 'NODETREE'
 
     def update(self):
-        print(f'{self}.update()')
+        from .nodes.output_node import OutputNode
+        for node in self.nodes:
+            if isinstance(node, OutputNode):
+                node.backUpdate()
 
-    def interface_update(self, context):  # TODO when does this get called
-        print(f'{self}.interface_update({context})')
+    def interface_update(self, context):  # when does this get called?
+        pass
