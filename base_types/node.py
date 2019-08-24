@@ -5,14 +5,25 @@ from ..node_tree import ProceduralTextureNodeTree
 
 
 class ProceduralTextureNode(Node):
-    def init_post(self):
-        self.updateNode()
+
+    initialization_completed: bpy.props.BoolProperty(default=False)
+
+    def init(self, context):
+        self.initialization_completed = False
+        self.init_node(context)
+        self.initialization_completed = True
+
+    def init_node(self, context: 'bpy.types.Context'):
+        pass
 
     @classmethod
     def poll(cls, tree: 'bpy.types.NodeTree'):
         return tree.bl_idname == ProceduralTextureNodeTree.bl_idname
 
     def update(self):
+        if not self.initialization_completed:
+            print('skipped early initialization')
+            return
         print(f'{self.name}.update()')
         self.updateNode()
 

@@ -31,3 +31,8 @@ io_nodes = ProceduralTextureNodeCategory(
     identifier='IO',
     name='Input/Output'
 )
+
+effects = ProceduralTextureNodeCategory(
+    identifier='EFFECTS',
+    name='Effects'
+)

@@ -4,6 +4,7 @@ import gpu
 from .. import categories
 from .. import events
 from ..base_types.shader_node import ShaderNode
+from ..sockets.basic_sockets import FloatSocket, IntSocket
 from ..registration import register_node
 
 
@@ -11,6 +12,11 @@ from ..registration import register_node
 class PerlinNoiseNode(ShaderNode):
     bl_idname = 'ProceduralTexture_Node_Noise_Perlin'
     bl_label = 'Perlin Noise'
+
+    def init_node(self, context: bpy.types.Context):
+        super().init_node(context)
+        self.inputs.new(FloatSocket.bl_idname, 'Scale', identifier='scale')
+        self.inputs.new(IntSocket.bl_idname, 'Resolution', identifier='resolution')
 
     # shader from https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
     fragment_shader = '''
@@ -57,8 +63,11 @@ float pNoise(vec2 p, int res){
 
 layout(location = 0) out vec4 frag_color;
 
+uniform int resolution;
+uniform float scale;
+
 void main(){
-    float value = pNoise(uvInterp, 2);
+    float value = pNoise(((uvInterp-.5)*2)*scale, resolution);
     frag_color = vec4(value, value, value, 1.0);
 }
 '''
@@ -125,15 +134,9 @@ class Cells(ShaderNode):
     bl_idname = 'ProceduralTexture_Node_Noise_Cells'
     bl_label = 'Cells'
 
-    scale: bpy.props.FloatProperty(default=1, update=events.node_property_update)
-
-    def add_shader_inputs(self, shader: gpu.types.GPUShader):
-        super().add_shader_inputs(shader)
-        shader.uniform_float('scale', self.scale)
-
-    def draw_buttons(self, context, layout):
-        super().draw_buttons(context, layout)
-        layout.prop(self, 'scale', text='Scale')
+    def init_node(self, context: bpy.types.Context):
+        super().init_node(context)
+        self.inputs.new(FloatSocket.bl_idname, 'Scale', identifier='scale')
 
     fragment_shader = '''\
 //

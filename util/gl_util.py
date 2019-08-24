@@ -22,36 +22,3 @@ class OffscreenRendering:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._offscreen.unbind()
         self._offscreen.free()
-
-
-class OffscreenRender2DShader(OffscreenRendering):
-    __vertex_shader = '''\
-in vec2 pos;
-in vec2 uv;
-
-out vec2 uvInterp;
-
-void main()
-{
-    uvInterp = uv;
-    gl_Position = vec4(pos, 0.0, 1.0);
-}
-'''
-
-    def __init__(self, width: int, height: int, fragment_shader: str, samples: int = 0):
-        super().__init__(width, height, samples)
-        self.shader = gpu.types.GPUShader(
-            OffscreenRender2DShader.__vertex_shader,
-            fragment_shader
-        )
-        self.batch: gpu.types.GPUBatch = gpu_extras.batch.batch_for_shader(
-            self.shader,
-            'TRI_FAN',
-            {
-                "pos": ((-1, -1), (1, -1), (1, 1), (-1, 1)),
-                "uv": ((0, 0), (1, 0), (1, 1), (0, 1)),
-            }
-        )
-
-    def draw_shader(self):
-        self.batch.draw(self.shader)

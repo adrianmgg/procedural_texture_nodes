@@ -9,11 +9,10 @@ from ..util.decorators import get_from_linked
 @register_class
 class BufferSocket(ProceduralTextureNodeSocket):
     bl_idname = 'ProceduralTexture_Socket_Buffer'
-    bl_label = 'Image'
 
     buffer_id: bpy.props.IntProperty(default=-1)
     width: bpy.props.IntProperty()
-    height: bpy.props.FloatProperty()
+    height: bpy.props.IntProperty()
 
     def set_buffer_id(self, new_id: int):
         self.buffer_id = new_id
@@ -36,6 +35,10 @@ class BufferSocket(ProceduralTextureNodeSocket):
     @get_from_linked
     def get_buffer_type(self):
         return buffer_manager.get_buffer_type(self.buffer_id)
+
+    @get_from_linked
+    def has_buffer(self):
+        return self.buffer_id != -1
 
     def draw(self, context, layout, node, text):
         layout.label(text=text)

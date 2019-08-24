@@ -31,7 +31,7 @@ def get_instance(key: int) -> Optional[bgl.Buffer]:
 
 def free_instance(key: int) -> NoReturn:
     if key in _buffer_instances:
-        bgl.glDeleteTextures(1, _buffer_instances.pop(key))
+        _buffer_instances.pop(key)
         _buffer_types.pop(key)
 
 

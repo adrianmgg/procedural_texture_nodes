@@ -13,10 +13,10 @@ class OutputNode(ProceduralTextureNode):
 
     image: bpy.props.PointerProperty(type=bpy.types.Image)
 
-    def init(self, context):
+    def init_node(self, context):
+        super().init_node(context)
         self.inputs.new(BufferSocket.bl_idname, name='Output Image')
         # self.show_preview = True TODO figure out how to set preview image
-        super().init_post()
 
     def recalculateOutputs(self):
         if self.image is None:
