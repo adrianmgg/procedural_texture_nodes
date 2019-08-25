@@ -33,7 +33,6 @@ def dimensions_changed(node: 'ShaderNode', context: bpy.types.Context):
 
 # each fragment shader must have these inputs:
 # in vec2 uv;
-# in ivec2 resolution;
 class ShaderNode(ProceduralTextureNode):
     def init_node(self, context: bpy.types.Context):
         super().init_node(context)
