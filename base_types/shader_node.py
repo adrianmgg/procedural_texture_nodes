@@ -42,8 +42,13 @@ class ShaderNode(ProceduralTextureNode):
 
     def draw_buttons(self, context, layout):
         super().draw_buttons(context, layout)
+        layout.label(text=f'buffer #{self.buffer_id}')
         layout.prop(self, 'image_width', text='Width')
         layout.prop(self, 'image_height', text='Height')
+
+    def copy(self, node: 'ShaderNode'):
+        self.is_dirty = True
+        self.setup_buffer(reset=True)
 
     def recalculateOutputs(self):
         super().recalculateOutputs()
@@ -57,13 +62,13 @@ class ShaderNode(ProceduralTextureNode):
                 shader = gpu.types.GPUShader(
                     '''\
 in vec2 pos;
-in vec2 uv;
+in vec2 in_uv;
 
-out vec2 uvInterp;
+out vec2 uv;
 
 void main()
 {
-    uvInterp = uv;
+    uv = in_uv;
     gl_Position = vec4(pos, 0.0, 1.0);
 }
 ''',
@@ -75,7 +80,7 @@ void main()
                     'TRI_FAN',
                     {
                         "pos": ((-1, -1), (1, -1), (1, 1), (-1, 1)),
-                        "uv": ((0, 0), (1, 0), (1, 1), (0, 1)),
+                        "in_uv": ((0, 0), (1, 0), (1, 1), (0, 1)),
                     }
                 )
 

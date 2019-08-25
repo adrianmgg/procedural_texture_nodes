@@ -51,8 +51,3 @@ class OutputNode(ProceduralTextureNode):
         # should the image be removed on free()?
         pass
 
-    def draw_label(self) -> str:
-        if self.image.name != self.name:
-            self.recalculateOutputs()
-        return self.name
-

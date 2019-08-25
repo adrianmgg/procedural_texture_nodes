@@ -15,7 +15,7 @@ class WarpNode(ShaderNode):
     fragment_shader = '''\
 layout(location = 0) out vec4 out_color;
 
-in vec2 uvInterp;
+in vec2 uv;
 
 uniform float strength;
 uniform sampler2D input_image;
@@ -24,7 +24,7 @@ uniform sampler2D warp;
 void main(){
     out_color = texture(
         input_image,
-        uvInterp + ((texture(warp, uvInterp).x-0.5)*strength)
+        uv + ((texture(warp, uv).x-0.5)*strength)
     );
 }
 '''
