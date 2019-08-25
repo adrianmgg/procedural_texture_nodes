@@ -11,8 +11,8 @@ class BufferSocket(ProceduralTextureNodeSocket):
     bl_idname = 'ProceduralTexture_Socket_Buffer'
 
     buffer_id: bpy.props.IntProperty(default=-1)
-    width: bpy.props.IntProperty()
-    height: bpy.props.IntProperty()
+    width: bpy.props.IntProperty(default=1024)
+    height: bpy.props.IntProperty(default=1024)
 
     def set_buffer_id(self, new_id: int):
         self.buffer_id = new_id
