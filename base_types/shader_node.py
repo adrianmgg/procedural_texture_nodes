@@ -31,31 +31,36 @@ def dimensions_changed(node: 'ShaderNode', context: bpy.types.Context):
     events.node_property_update(node, context)
 
 
+# each fragment shader must have these inputs:
+# in vec2 uv;
+# in ivec2 resolution;
 class ShaderNode(ProceduralTextureNode):
     def init_node(self, context: bpy.types.Context):
         super().init_node(context)
         self.outputs.new(BufferSocket.bl_idname, name='Output')
 
+    @property
+    def out_buffer_socket(self) -> BufferSocket:
+        return self.outputs['Output']
+
     def setup_buffer(self, new_buffer=False):
-        buffer_socket: BufferSocket = self.outputs.get('Output')
-        if not buffer_socket.has_buffer() or new_buffer:
-            buffer_socket.buffer_id = buffer_manager.new_instance(
+        if not self.out_buffer_socket.has_buffer() or new_buffer:
+            self.out_buffer_socket.buffer_id = buffer_manager.new_instance(
                 buffer_type=bgl.GL_BYTE,
-                dimensions=4 * buffer_socket.width * buffer_socket.height
+                dimensions=4 * self.out_buffer_socket.width * self.out_buffer_socket.height
             )
         else:
             buffer_manager.replace_instance(
-                key=buffer_socket.buffer_id,
+                key=self.out_buffer_socket.buffer_id,
                 buffer_type=bgl.GL_BYTE,
-                dimensions=4 * buffer_socket.width * buffer_socket.height
+                dimensions=4 * self.out_buffer_socket.width * self.out_buffer_socket.height
             )
 
     def draw_buttons(self, context, layout):
         super().draw_buttons(context, layout)
-        buffer_socket: BufferSocket = self.outputs.get('Output')
-        layout.label(text=f'buffer #{buffer_socket.buffer_id}')
-        layout.prop(buffer_socket, 'width', text='Width')
-        layout.prop(buffer_socket, 'height', text='Height')
+        layout.label(text=f'buffer #{self.out_buffer_socket.buffer_id}')
+        layout.prop(self.out_buffer_socket, 'width', text='Width')
+        layout.prop(self.out_buffer_socket, 'height', text='Height')
 
     def copy(self, node: 'ShaderNode'):
         self.is_dirty = True
@@ -63,10 +68,9 @@ class ShaderNode(ProceduralTextureNode):
 
     def recalculateOutputs(self):
         super().recalculateOutputs()
-        buffer_socket: BufferSocket = self.outputs.get('Output')
-        if not buffer_socket.has_buffer():
+        if not self.out_buffer_socket.has_buffer():
             self.setup_buffer()
-        with OffscreenRendering(buffer_socket.width, buffer_socket.height) as offscreen:
+        with OffscreenRendering(self.out_buffer_socket.width, self.out_buffer_socket.height) as offscreen:
             shader = gpu.types.GPUShader(
                 '''\
 in vec2 pos;
@@ -74,10 +78,9 @@ in vec2 in_uv;
 
 out vec2 uv;
 
-void main()
-{
-uv = in_uv;
-gl_Position = vec4(pos, 0.0, 1.0);
+void main(){
+    uv = in_uv;
+    gl_Position = vec4(pos, 0.0, 1.0);
 }
 ''',
                 type(self).fragment_shader
@@ -109,7 +112,7 @@ gl_Position = vec4(pos, 0.0, 1.0);
                     bgl.glTexImage2D(
                         bgl.GL_TEXTURE_2D,  # target texture
                         0,  # level of detail
-                        bgl.GL_RGBA,  # 'internal format'
+                        bgl.GL_RGBA,  # internal format
                         ipt.get_width(),  # width
                         ipt.get_height(),  # height
                         0,  # border width
@@ -132,16 +135,16 @@ gl_Position = vec4(pos, 0.0, 1.0);
             for texture_id in textures_to_delete:
                 bgl.glDeleteTextures(1, texture_id)
 
-            buffer = buffer_socket.get_buffer()
+            buffer = self.out_buffer_socket.get_buffer()
             bgl.glReadBuffer(bgl.GL_BACK)
-            bgl.glReadPixels(0, 0, buffer_socket.width, buffer_socket.height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
+            bgl.glReadPixels(0, 0, self.out_buffer_socket.width, self.out_buffer_socket.height, bgl.GL_RGBA,
+                             bgl.GL_UNSIGNED_BYTE, buffer)
 
     def add_shader_inputs(self, shader: 'gpu.types.GPUShader'):
         pass
 
     def free(self):
-        buffer_socket: BufferSocket = self.outputs.get('Output')
-        buffer_manager.delete_instance(buffer_socket.buffer_id)
+        buffer_manager.delete_instance(self.out_buffer_socket.buffer_id)
 
     def load(self):
         self.is_dirty = True

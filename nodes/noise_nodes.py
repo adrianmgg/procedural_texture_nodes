@@ -14,217 +14,96 @@
 # along with this program.  If not, see https://www.gnu.org/licenses/.
 
 import bpy
-import gpu
 
 from .. import categories
-from .. import events
 from ..base_types.shader_node import ShaderNode
-from ..sockets.basic_sockets import FloatSocket, IntSocket
 from ..registration import register_node
+from ..sockets.basic_sockets import FloatSocket, IntSocket
+from ..events import node_property_update
 
 
 @register_node(category=categories.noise_nodes)
-class PerlinNoiseNode(ShaderNode):
-    bl_idname = 'ProceduralTexture_Node_Noise_Perlin'
-    bl_label = 'Perlin Noise'
+class Voronoi(ShaderNode):
+    bl_idname = 'ProceduralTexture_Node_Noise_Voronoi'
+    bl_label = 'Voronoi'
+
+    coloring_enum = [
+        ('INTENSITY', 'Intensity', 'Description', 0),
+        ('CELLS', 'Cells', 'Description', 1)
+    ]
+
+    coloring_mode: bpy.props.EnumProperty(items=coloring_enum, default='INTENSITY', update=node_property_update)
 
     def init_node(self, context: bpy.types.Context):
         super().init_node(context)
-        self.inputs.new(FloatSocket.bl_idname, 'Scale', identifier='scale')
-        self.inputs.new(IntSocket.bl_idname, 'Resolution', identifier='resolution')
+        scale_socket: IntSocket = self.inputs.new(IntSocket.bl_idname, 'Scale', identifier='scale')
+        scale_socket.set_default_value(1)
 
-    # shader from https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
-    fragment_shader = '''
-#define M_PI 3.14159265358979323846
-in vec2 uvInterp;
-
-float rand(vec2 c){
-    return fract(sin(dot(c.xy ,vec2(12.9898,78.233))) * 43758.5453);
-}
-
-float noise(vec2 p, float freq ){
-    float unit = 1.0/freq;
-    vec2 ij = floor(p/unit);
-    vec2 xy = mod(p,unit)/unit;
-    //xy = 3.*xy*xy-2.*xy*xy*xy;
-    xy = .5*(1.-cos(M_PI*xy));
-    float a = rand((ij+vec2(0.,0.)));
-    float b = rand((ij+vec2(1.,0.)));
-    float c = rand((ij+vec2(0.,1.)));
-    float d = rand((ij+vec2(1.,1.)));
-    float x1 = mix(a, b, xy.x);
-    float x2 = mix(c, d, xy.x);
-    return mix(x1, x2, xy.y);
-}
-
-float pNoise(vec2 p, int res){
-    float persistance = .5;
-    float n = 0.;
-    float normK = 0.;
-    float f = 4.;
-    float amp = 1.;
-    int iCount = 0;
-    for (int i = 0; i<50; i++){
-        n+=amp*noise(p, f);
-        f*=2.;
-        normK+=amp;
-        amp*=persistance;
-        if (iCount == res) break;
-        iCount++;
-    }
-    float nf = n/normK;
-    return nf*nf*nf*nf;
-}
-
-layout(location = 0) out vec4 frag_color;
-
-uniform int resolution;
-uniform float scale;
-
-void main(){
-    float value = pNoise(((uvInterp-.5)*2)*scale, resolution);
-    frag_color = vec4(value, value, value, 1.0);
-}
-'''
-
-
-@register_node(category=categories.noise_nodes)
-class FBMNoiseNode(ShaderNode):
-    bl_idname = 'ProceduralTexture_Node_Noise_FBM'
-    bl_label = 'FBM Noise'
-
-    num_octaves: bpy.props.IntProperty(default=5, min=1, update=events.node_property_update)
-
-    def add_shader_inputs(self, shader: gpu.types.GPUShader):
+    def add_shader_inputs(self, shader: 'gpu.types.GPUShader'):
         super().add_shader_inputs(shader)
-        shader.uniform_int('octaves', self.num_octaves)
+        for identifier, name, desc, number in type(self).coloring_enum:
+            if self.coloring_mode == identifier:
+                shader.uniform_int('coloring_mode', number)
 
     def draw_buttons(self, context, layout):
         super().draw_buttons(context, layout)
-        layout.prop(self, 'num_octaves', text='Octaves')
+        layout.prop(self, 'coloring_mode')
 
-    # shader from https://www.shadertoy.com/view/4dS3Wd
-    fragment_shader = '''
-uniform int octaves;
-
-in vec2 uvInterp;
-
-float hash(vec2 p) { return fract(1e4 * sin(17.0 * p.x + p.y * 0.1) * (0.1 + abs(sin(p.y * 13.0 + p.x)))); }
-
-float noise(vec2 x) {
-    vec2 i = floor(x);
-    vec2 f = fract(x);
-    float a = hash(i);
-    float b = hash(i + vec2(1.0, 0.0));
-    float c = hash(i + vec2(0.0, 1.0));
-    float d = hash(i + vec2(1.0, 1.0));
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
-}
-
-float fbm(vec2 x) {
-    float v = 0.0;
-    float a = 0.5;
-    vec2 shift = vec2(100);
-    mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.50));
-    for (int i = 0; i < octaves; ++i) {
-        v += a * noise(x);
-        x = rot * x * 2.0 + shift;
-        a *= 0.5;
-    }
-    return v;
-}
-
-layout(location = 0) out vec4 frag_color;
-
-void main(){
-    float value = fbm(uvInterp);
-    frag_color = vec4(value, value, value, 1.0);
-}
-'''
-
-
-@register_node(category=categories.noise_nodes)
-class Cells(ShaderNode):
-    bl_idname = 'ProceduralTexture_Node_Noise_Cells'
-    bl_label = 'Cells'
-
-    def init_node(self, context: bpy.types.Context):
-        super().init_node(context)
-        self.inputs.new(FloatSocket.bl_idname, 'Scale', identifier='scale')
-
+    # shader based on:
+    #  https://thebookofshaders.com/12/
+    #  http://www.iquilezles.org/www/articles/smoothvoronoi/smoothvoronoi.htm TODO
+    #  http://www.iquilezles.org/www/articles/voronoilines/voronoilines.htm TODO
     fragment_shader = '''\
-//
-//  Wombat
-//  An efficient texture-free GLSL procedural noise library
-//  Source: https://github.com/BrianSharpe/Wombat
-//  Derived from: https://github.com/BrianSharpe/GPU-Noise-Lib
-//
-//  I'm not one for copyrights.  Use the code however you wish.
-//  All I ask is that credit be given back to the blog or myself when appropriate.
-//  And also to let me know if you come up with any changes, improvements, thoughts or interesting uses for this stuff. :)
-//  Thanks!
-//
-//  Brian Sharpe
-//  brisharpe CIRCLE_A yahoo DOT com
-//  http://briansharpe.wordpress.com
-//  https://github.com/BrianSharpe
-//
+in vec2 uv;
 
-//
-//  This represents a modified version of Stefan Gustavson's work at http://www.itn.liu.se/~stegu/GLSL-cellular
-//  The noise is optimized to use a 2x2 search window instead of 3x3
-//  Modifications are...
-//  - faster random number generation
-//  - analytical final normalization
-//  - random point offset is restricted to prevent artifacts
-//
+uniform int scale;
 
-//
-//  Cellular Noise 2D Deriv
-//  Return value range of 0.0->1.0, with format vec3( value, xderiv, yderiv )
-//
-vec3 Cellular2D_Deriv( vec2 P )
-{
-    //  https://github.com/BrianSharpe/Wombat/blob/master/Cellular2D_Deriv.glsl
+uniform int coloring_mode;
+#define COLORING_MODE_INTENSITY 0
+#define COLORING_MODE_CELLS 1
 
-    //  establish our grid cell and unit position
-    vec2 Pi = floor(P);
-    vec2 Pf = P - Pi;
+layout(location = 0) out vec4 out_color;
 
-    //  calculate the hash
-    vec4 Pt = vec4( Pi.xy, Pi.xy + 1.0 );
-    Pt = Pt - floor(Pt * ( 1.0 / 71.0 )) * 71.0;
-    Pt += vec2( 26.0, 161.0 ).xyxy;
-    Pt *= Pt;
-    Pt = Pt.xzxz * Pt.yyww;
-    vec4 hash_x = fract( Pt * ( 1.0 / 951.135664 ) );
-    vec4 hash_y = fract( Pt * ( 1.0 / 642.949883 ) );
-
-    //  generate the 4 points
-    hash_x = hash_x * 2.0 - 1.0;
-    hash_y = hash_y * 2.0 - 1.0;
-    const float JITTER_WINDOW = 0.25;   // 0.25 will guarentee no artifacts
-    hash_x = ( ( hash_x * hash_x * hash_x ) - sign( hash_x ) ) * JITTER_WINDOW + vec4( 0.0, 1.0, 0.0, 1.0 );
-    hash_y = ( ( hash_y * hash_y * hash_y ) - sign( hash_y ) ) * JITTER_WINDOW + vec4( 0.0, 0.0, 1.0, 1.0 );
-
-    //	return the closest squared distance + derivatives ( thanks to Jonathan Dupuy )
-    vec4 dx = Pf.xxxx - hash_x;
-    vec4 dy = Pf.yyyy - hash_y;
-    vec4 d = dx * dx + dy * dy;
-    vec3 t1 = d.x < d.y ? vec3( d.x, dx.x, dy.x ) : vec3( d.y, dx.y, dy.y );
-    vec3 t2 = d.z < d.w ? vec3( d.z, dx.z, dy.z ) : vec3( d.w, dx.w, dy.w );
-    return ( t1.x < t2.x ? t1 : t2 ) * vec3( 1.0, 2.0, 2.0 ) * ( 1.0 / 1.125 ); // return a value scaled to 0.0->1.0
+vec2 random2(vec2 p) {
+    return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
 }
 
-in vec2 uvInterp;
-
-uniform float scale;
-
-layout(location = 0) out vec4 frag_color;
-
 void main(){
-    vec2 uv_scaled = ((uvInterp-.5)*2)*scale;
-    frag_color = vec4(Cellular2D_Deriv(uv_scaled), 1.0);
+    vec3 color = vec3(0.0, 0.0, 0.0);
+
+    vec2 grid_pos = uv * scale;
+
+    // what cell are we in
+    ivec2 cell = ivec2(floor(grid_pos));
+
+    vec2 closest_point;
+    float closest_point_distance = 10;
+    
+    for(int x = -1; x <= 1; x++){
+        for(int y = -1; y <= 1; y++){
+            ivec2 test_cell = cell + ivec2(x, y);
+            ivec2 foo = cell + ivec2(x, y);
+            if(foo.x < 0) foo.x = scale - 1;
+            if(foo.x >= scale) foo.x = 0;
+            if(foo.y < 0) foo.y = scale - 1;
+            if(foo.y >= scale) foo.y = 0;
+            vec2 test_point = test_cell + random2(foo);
+            float dist = distance(grid_pos, test_point);
+            if(dist < closest_point_distance){
+                closest_point_distance = dist;
+                closest_point = test_point;
+            }
+        }
+    }
+    
+    switch(coloring_mode){
+    case COLORING_MODE_INTENSITY:
+        out_color = vec4(vec3(closest_point_distance), 1);
+        break;
+    case COLORING_MODE_CELLS:
+        out_color = vec4(random2(closest_point), 0, 1);
+        break;
+    }
+    
 }
 '''

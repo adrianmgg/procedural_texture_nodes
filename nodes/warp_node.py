@@ -48,6 +48,5 @@ void main(){
         super().init_node(context)
         self.inputs.new(BufferSocket.bl_idname, 'Input Image', identifier='input_image')
         self.inputs.new(BufferSocket.bl_idname, 'Warp Map', identifier='warp')
-        # noinspection PyTypeChecker
         strength: FloatSocket = self.inputs.new(FloatSocket.bl_idname, 'Strength', identifier='strength')
         strength.set_default_value(1)
