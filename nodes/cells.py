@@ -12,7 +12,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see https://www.gnu.org/licenses/.
-
 import bpy
 
 from .. import categories
@@ -25,9 +24,9 @@ from ..util.props import get_enum_prop_number
 
 
 @register_node(category=categories.noise_nodes)
-class Voronoi(ShaderNode):
-    bl_idname = 'ProceduralTexture_Node_Noise_Voronoi'
-    bl_label = 'Voronoi'
+class Cells(ShaderNode):
+    bl_idname = 'ProceduralTexture_Node_Noise_Cells'
+    bl_label = 'Cells'
 
     coloring_enum = [
         ('INTENSITY', 'Intensity', 'Description', 0),
@@ -50,3 +49,4 @@ class Voronoi(ShaderNode):
         layout.prop(self, 'coloring_mode')
 
     fragment_shader = load_shader_file('nodes/noises/cells.frag')
+    shader_library_files = load_shader_file('util/hash.frag')
