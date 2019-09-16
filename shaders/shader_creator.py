@@ -25,5 +25,5 @@ def load_shader_file(shader_file_path: str) -> str:
         return shader_file.read()
 
 
-def load_shader_files(shader_file_paths: List[str]) -> List[str]:
-    return [load_shader_file(path) for path in shader_file_paths]
+def load_shader_files(*shader_file_paths: str) -> str:
+    return '\n'.join([load_shader_file(path) for path in shader_file_paths])
