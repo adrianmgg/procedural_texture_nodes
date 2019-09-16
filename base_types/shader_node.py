@@ -17,7 +17,9 @@ import bgl
 import bpy
 import gpu
 import gpu_extras
+from typing import List, Optional
 
+from ..shaders.shader_creator import load_shader_file
 from ..base_types.node import ProceduralTextureNode
 from ..data import buffer_manager
 from ..sockets.buffer_socket import BufferSocket
@@ -34,6 +36,27 @@ def dimensions_changed(node: 'ShaderNode', context: bpy.types.Context):
 # each fragment shader must have these inputs:
 # in vec2 uv;
 class ShaderNode(ProceduralTextureNode):
+    fragment_shader: str
+    shader_library_files: Optional[List[str]] = None
+    _shader: 'gpu.types.GPUShader'
+
+    def __init_subclass__(cls) -> None:
+        if cls.shader_library_files is not None:
+            cls._shader = gpu.types.GPUShader(
+                vertexcode=load_shader_file('shader_node.vert'),
+                fragcode=cls.fragment_shader,
+                libcode=cls.shader_library_files
+            )
+        else:
+            cls._shader = gpu.types.GPUShader(
+                vertexcode=load_shader_file('shader_node.vert'),
+                fragcode=cls.fragment_shader
+            )
+
+    @property
+    def shader(self) -> 'gpu.types.GPUShader':
+        return type(self)._shader
+
     def init_node(self, context: bpy.types.Context):
         super().init_node(context)
         self.outputs.new(BufferSocket.bl_idname, name='Output')
@@ -70,23 +93,8 @@ class ShaderNode(ProceduralTextureNode):
         if not self.out_buffer_socket.has_buffer():
             self.setup_buffer()
         with OffscreenRendering(self.out_buffer_socket.width, self.out_buffer_socket.height) as offscreen:
-            shader = gpu.types.GPUShader(
-                '''\
-in vec2 pos;
-in vec2 in_uv;
-
-out vec2 uv;
-
-void main(){
-    uv = in_uv;
-    gl_Position = vec4(pos, 0.0, 1.0);
-}
-''',
-                type(self).fragment_shader
-            )
-
             batch = gpu_extras.batch.batch_for_shader(
-                shader,
+                self.shader,
                 'TRI_FAN',
                 {
                     "pos": ((-1, -1), (1, -1), (1, 1), (-1, 1)),
@@ -94,12 +102,12 @@ void main(){
                 }
             )
 
-            shader.bind()
+            self.shader.bind()
 
             textures_to_delete = []
             texture_count = 0
             for ipt in self.inputs:
-                ipt: 'bpy.types.NodeSocket'
+                ipt: 'bpy.types.NodeSocket' = ipt
                 if isinstance(ipt, BufferSocket):
                     if not ipt.has_buffer():
                         continue
@@ -119,17 +127,17 @@ void main(){
                         bgl.GL_UNSIGNED_BYTE,  # data type
                         ipt.get_buffer()  # buffer
                     )
-                    shader.uniform_int(ipt.identifier, texture_count)
+                    self.shader.uniform_int(ipt.identifier, texture_count)
                     texture_count += 1
                     textures_to_delete.append(tex_id_buff)
                 elif isinstance(ipt, FloatSocket):
-                    shader.uniform_float(ipt.identifier, ipt.get_value())
+                    self.shader.uniform_float(ipt.identifier, ipt.get_value())
                 elif isinstance(ipt, IntSocket):
-                    shader.uniform_int(ipt.identifier, ipt.get_value())
+                    self.shader.uniform_int(ipt.identifier, ipt.get_value())
 
-            self.add_shader_inputs(shader)
+            self.add_shader_inputs(self.shader)
 
-            batch.draw(shader)
+            batch.draw(self.shader)
 
             for texture_id in textures_to_delete:
                 bgl.glDeleteTextures(1, texture_id)
