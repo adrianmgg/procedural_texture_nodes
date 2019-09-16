@@ -25,10 +25,6 @@ uniform int coloring_mode;
 
 layout(location = 0) out vec4 out_color;
 
-vec2 random2(vec2 p) {
-	return fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))))*43758.5453);
-}
-
 void main(){
 	vec2 grid_pos = uv * scale;
 
@@ -36,6 +32,7 @@ void main(){
 
 	vec2 closest_point;
 	float closest_point_distance = 10;
+	vec2 closest_point_wrapped;
 
 	for (int x = -1; x <= 1; x++){
 		for (int y = -1; y <= 1; y++){
@@ -45,11 +42,12 @@ void main(){
 			else if (foo.x >= scale) foo.x = 0;
 			if (foo.y < 0) foo.y = scale - 1;
 			else if (foo.y >= scale) foo.y = 0;
-			vec2 test_point = test_cell + random2(foo);
+			vec2 test_point = test_cell + hash2to2(foo / (1. * scale));
 			float dist = distance(grid_pos, test_point);
 			if (dist < closest_point_distance){
 				closest_point_distance = dist;
 				closest_point = test_point;
+				closest_point_wrapped = foo;
 			}
 		}
 	}
@@ -59,7 +57,7 @@ void main(){
 		out_color = vec4(vec3(closest_point_distance), 1);
 		break;
 		case COLORING_MODE_CELLS:
-		out_color = vec4(random2(closest_point), 0, 1);
+		out_color = vec4(hash2to3(closest_point_wrapped / scale + vec2(2)), 1);
 		break;
 	}
 }
