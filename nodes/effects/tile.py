@@ -14,14 +14,14 @@
 # along with this program.  If not, see https://www.gnu.org/licenses/.
 import bpy
 
-from .. import categories
-from ..base_types.shader_node import ShaderNode
-from ..registration import register_node
-from ..sockets.basic_sockets import FloatSocket, IntSocket
-from ..events import node_property_update
-from ..shaders.shader_creator import load_shader_file
-from ..util.props import get_enum_prop_number
-from ..sockets.buffer_socket import BufferSocket
+from ... import categories
+from ...base_types.shader_node import ShaderNode
+from ...registration import register_node
+from ...sockets.basic_sockets import FloatSocket, IntSocket
+from ...events import node_property_update
+from ...shaders.shader_creator import load_shader_file
+from ...util.props import get_enum_prop_number
+from ...sockets.buffer_socket import BufferSocket
 
 
 @register_node(category=categories.effects)
