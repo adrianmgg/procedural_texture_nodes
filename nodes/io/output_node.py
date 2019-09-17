@@ -15,10 +15,10 @@
 
 import bpy
 
-from .. import categories
-from ..base_types.node import ProceduralTextureNode
-from ..registration import register_node
-from ..sockets.buffer_socket import BufferSocket
+from ... import categories
+from ...base_types.node import ProceduralTextureNode
+from ...registration import register_node
+from ...sockets.buffer_socket import BufferSocket
 
 
 @register_node(category=categories.io_nodes)

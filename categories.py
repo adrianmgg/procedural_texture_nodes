@@ -32,12 +32,6 @@ class ProceduralTextureNodeCategory(NodeCategory):
         self._items.append(node)
 
 
-# use an enum for these?
-test_nodes = ProceduralTextureNodeCategory(
-    identifier='TEST',
-    name='Test Category'
-)
-
 noise_nodes = ProceduralTextureNodeCategory(
     identifier='NOISE',
     name='Noise'
