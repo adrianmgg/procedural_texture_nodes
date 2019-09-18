@@ -1,5 +1,5 @@
 ---
-name: New Node Template
+name: New node template
 about: Suggest new node(s)
 title: Add [NODE NAME] Node
 labels: new node
