@@ -15,15 +15,33 @@
 
 import os
 
-from typing import List
+from typing import Optional, List
 
 shaders_dir = os.path.dirname(os.path.realpath(__file__))
 
 
-def load_shader_file(shader_file_path: str) -> str:
-    with open(os.path.join(shaders_dir, shader_file_path), 'r') as shader_file:
-        return shader_file.read()
+def load_shader_file(shader_path: str, shaders_already_imported: Optional[List[str]] = None, shader_file_type: str = 'frag') -> str:
+    if shaders_already_imported is None:
+        shaders_already_imported = []
 
+    shader_file_contents = ''
 
-def load_shader_files(*shader_file_paths: str) -> str:
-    return '\n'.join([load_shader_file(path) for path in shader_file_paths])
+    shader_file_path = os.path.join(shaders_dir, f'{shader_path}.{shader_file_type}')
+    dependencies_file_path = os.path.join(shaders_dir, f'{shader_path}.dependencies')
+
+    if not os.path.exists(shader_file_path):
+        raise Exception(f'Shader file "{shader_path}.{shader_file_type}" not found')
+
+    if os.path.exists(dependencies_file_path):
+        with open(dependencies_file_path, 'r') as dependencies_file:
+            for dependency in dependencies_file:
+                dependency = dependency.rstrip()
+                if dependency not in shaders_already_imported:
+                    shader_file_contents += '\n'
+                    shader_file_contents += load_shader_file(dependency, shaders_already_imported)
+
+    with open(shader_file_path, 'r') as shader_file:
+        shader_file_contents += '\n'
+        shader_file_contents += shader_file.read()
+
+    return shader_file_contents

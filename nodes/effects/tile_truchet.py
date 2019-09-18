@@ -19,7 +19,7 @@ from ...base_types.shader_node import ShaderNode
 from ...registration import register_node
 from ...sockets.basic_sockets import FloatSocket, IntSocket
 from ...events import node_property_update
-from ...shaders.shader_creator import load_shader_file, load_shader_files
+from ...shaders.shader_creator import load_shader_file
 from ...util.props import get_enum_prop_number
 from ...sockets.buffer_socket import BufferSocket
 
@@ -41,5 +41,4 @@ class TruchetTile(ShaderNode):
     def draw_buttons(self, context, layout):
         super().draw_buttons(context, layout)
 
-    fragment_shader = load_shader_file('nodes/effects/tile_truchet.frag')
-    shader_library_files = load_shader_files('util/constants.frag', 'util/hash.frag', 'util/matrices.frag')
+    fragment_shader = load_shader_file('nodes/effects/tile_truchet')

@@ -34,28 +34,16 @@ void main(){
 
 	switch (blend_mode){
 		case BLEND_MODE_NORMAL:
-			out_color = vec4(
-				color_1.rgb * color_1.a + color_2.rgb * (1 - color_1.a),
-				color_1.a + color_2.a * (1-color_2.a)
-			);
+			out_color = blend(color_1, color_2);
 			return;
 		case BLEND_MODE_ADD:
-			out_color = vec4(
-				color_1.rgb * color_1.a + color_2.rgb,
-				color_1.a + color_2.a * (1-color_2.a)
-			);
+			out_color = blend_add(color_1, color_2);
 			return;
 		case BLEND_MODE_SUBTRACT:
-			out_color = vec4(
-				color_2.rgb - color_1.rgb * color_1.a,
-				color_1.a + color_2.a * (1-color_2.a)
-			);
+			out_color = blend_subtract(color_1, color_2);
 			return;
 		case BLEND_MODE_MULTIPLY:
-			out_color = vec4(
-				color_1.rgb * color_2.rgb * color_2.a + color_2.rgb * (1 - color_1.a),
-				color_1.a + color_2.a * (1-color_2.a)
-			);
+			out_color = blend_multiply(color_1, color_2);
 			return;
 	}
 }

@@ -51,4 +51,4 @@ class Blend(ShaderNode):
         super().draw_buttons(context, layout)
         layout.prop(self, 'blend_mode')
 
-    fragment_shader = load_shader_file('nodes/effects/blend.frag')
+    fragment_shader = load_shader_file('nodes/effects/blend')
