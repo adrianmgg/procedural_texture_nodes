@@ -48,5 +48,4 @@ class Cells(ShaderNode):
         super().draw_buttons(context, layout)
         layout.prop(self, 'coloring_mode')
 
-    fragment_shader = load_shader_file('nodes/noises/cells.frag')
-    shader_library_files = load_shader_file('util/hash.frag')
+    fragment_shader = load_shader_file('nodes/noises/cells')

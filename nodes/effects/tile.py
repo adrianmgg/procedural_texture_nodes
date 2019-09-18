@@ -41,4 +41,4 @@ class Tile(ShaderNode):
     def draw_buttons(self, context, layout):
         super().draw_buttons(context, layout)
 
-    fragment_shader = load_shader_file('nodes/effects/tile.frag')
+    fragment_shader = load_shader_file('nodes/effects/tile')

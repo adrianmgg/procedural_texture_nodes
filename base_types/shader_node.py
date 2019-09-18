@@ -37,21 +37,13 @@ def dimensions_changed(node: 'ShaderNode', context: bpy.types.Context):
 # in vec2 uv;
 class ShaderNode(ProceduralTextureNode):
     fragment_shader: str
-    shader_library_files: Optional[List[str]] = None
     _shader: 'gpu.types.GPUShader'
 
     def __init_subclass__(cls) -> None:
-        if cls.shader_library_files is not None:
-            cls._shader = gpu.types.GPUShader(
-                vertexcode=load_shader_file('shader_node.vert'),
-                fragcode=cls.fragment_shader,
-                libcode=cls.shader_library_files
-            )
-        else:
-            cls._shader = gpu.types.GPUShader(
-                vertexcode=load_shader_file('shader_node.vert'),
-                fragcode=cls.fragment_shader
-            )
+        cls._shader = gpu.types.GPUShader(
+            vertexcode=load_shader_file('shader_node', shader_file_type='vert'),
+            fragcode=cls.fragment_shader
+        )
 
     @property
     def shader(self) -> 'gpu.types.GPUShader':
