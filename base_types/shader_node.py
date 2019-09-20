@@ -17,9 +17,7 @@ import bgl
 import bpy
 import gpu
 import gpu_extras
-from typing import List, Optional
 
-from ..shaders.shader_creator import load_shader_file
 from ..base_types.node import ProceduralTextureNode
 from ..data import buffer_manager
 from ..sockets.buffer_socket import BufferSocket
@@ -33,21 +31,10 @@ def dimensions_changed(node: 'ShaderNode', context: bpy.types.Context):
     events.node_property_update(node, context)
 
 
-# each fragment shader must have these inputs:
-# in vec2 uv;
 class ShaderNode(ProceduralTextureNode):
-    fragment_shader: str
-    _shader: 'gpu.types.GPUShader'
-
-    def __init_subclass__(cls) -> None:
-        cls._shader = gpu.types.GPUShader(
-            vertexcode=load_shader_file('shader_node', shader_file_type='vert'),
-            fragcode=cls.fragment_shader
-        )
-
     @property
     def shader(self) -> 'gpu.types.GPUShader':
-        return type(self)._shader
+        pass
 
     def init_node(self, context: bpy.types.Context):
         super().init_node(context)

@@ -15,7 +15,7 @@
 import bpy
 
 from ... import categories
-from ...base_types.shader_node import ShaderNode
+from ...base_types.simple_shader_node import SimpleShaderNode
 from ...registration import register_node
 from ...sockets.basic_sockets import FloatSocket, IntSocket
 from ...events import node_property_update
@@ -24,7 +24,7 @@ from ...util.props import get_enum_prop_number
 
 
 @register_node(category=categories.noise_nodes)
-class Cells(ShaderNode):
+class Cells(SimpleShaderNode, fragment_shader='nodes/noises/cells'):
     bl_idname = 'ProceduralTexture_Node_Noise_Cells'
     bl_label = 'Cells'
 
@@ -47,5 +47,3 @@ class Cells(ShaderNode):
     def draw_buttons(self, context, layout):
         super().draw_buttons(context, layout)
         layout.prop(self, 'coloring_mode')
-
-    fragment_shader = load_shader_file('nodes/noises/cells')

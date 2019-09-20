@@ -15,7 +15,7 @@
 import bpy
 
 from ... import categories
-from ...base_types.shader_node import ShaderNode
+from ...base_types.simple_shader_node import SimpleShaderNode
 from ...registration import register_node
 from ...sockets.basic_sockets import FloatSocket, IntSocket
 from ...events import node_property_update
@@ -25,7 +25,7 @@ from ...sockets.buffer_socket import BufferSocket
 
 
 @register_node(category=categories.effects)
-class Tile(ShaderNode):
+class Tile(SimpleShaderNode, fragment_shader='nodes/effects/tile'):
     bl_idname = 'ProceduralTexture_Node_Effect_Tile'
     bl_label = 'Tile'
 
@@ -40,5 +40,3 @@ class Tile(ShaderNode):
 
     def draw_buttons(self, context, layout):
         super().draw_buttons(context, layout)
-
-    fragment_shader = load_shader_file('nodes/effects/tile')
