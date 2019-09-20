@@ -59,7 +59,6 @@ class ShaderNode(ProceduralTextureNode):
 
     def draw_buttons(self, context, layout):
         super().draw_buttons(context, layout)
-        layout.label(text=f'buffer #{self.out_buffer_socket.buffer_id}')
         layout.prop(self.out_buffer_socket, 'width', text='Width')
         layout.prop(self.out_buffer_socket, 'height', text='Height')
 
