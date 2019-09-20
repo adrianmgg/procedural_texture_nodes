@@ -19,12 +19,25 @@ from ... import categories
 from ...base_types.node import ProceduralTextureNode
 from ...registration import register_node
 from ...sockets.buffer_socket import BufferSocket
+from ...events import node_property_update
 
 
 @register_node(category=categories.io_nodes)
 class OutputNode(ProceduralTextureNode):
     bl_idname = 'ProceduralTexture_Node_Output'
     bl_label = 'Output'
+
+    colorspace_enum = [
+        ('Filmic Log', 'Filmic Log', '', 0),
+        ('Linear', 'Linear', '', 1),
+        ('Linear ACES', 'Linear ACES', '', 2),
+        ('Non-Color', 'Non-Color', '', 3),
+        ('Raw', 'Raw', '', 4),
+        ('sRGB', 'sRGB', '', 5),
+        ('XYZ', 'XYZ', '', 6),
+    ]
+
+    colorspace: bpy.props.EnumProperty(items=colorspace_enum, default='sRGB', update=node_property_update)
 
     image: bpy.props.PointerProperty(type=bpy.types.Image)
 
@@ -45,6 +58,7 @@ class OutputNode(ProceduralTextureNode):
                     width=1024, height=1024,
                 )
             self.image = bpy.data.images.get(self.name)
+        self.image.colorspace_settings.name = self.colorspace
         if self.image.name != self.name:
             self.image.name = self.name
         buffer_input_socket: BufferSocket = self.inputs.get('Output Image')
@@ -58,6 +72,7 @@ class OutputNode(ProceduralTextureNode):
 
     def draw_buttons(self, context: bpy.types.Context, layout: bpy.types.UILayout):
         super().draw_buttons(context, layout)
+        layout.prop(self, 'colorspace')
 
     def copy(self, node):
         pass
